@@ -77,6 +77,24 @@ const MermaidRenderer = ({ chartCode, isGenerating, onRegenerate }) => {
         
             secondaryTextColor: "#f1f5f9",
             secondaryBorderColor: "#c7d2fe",
+
+            // Mindmap specific
+            noteBkgColor: "#26344b",
+            noteBorderColor: "#94a3b8",
+            noteTextColor: "#f1f5f9",
+            cScale0: "#6366f1",
+            cScale1: "#818cf8",
+            cScale2: "#a5b4fc",
+            cScale3: "#bfdbfe",
+            primaryBkgColor: "#6366f1",
+            primaryTextColor: "#ffffff",
+            secondaryBkgColor: "#818cf8",
+            secondaryTextColor: "#ffffff",
+            tertiaryBkgColor: "#a5b4fc",
+            tertiaryTextColor: "#1e293b",
+            nodeBkg: "#6366f1",
+            nodeBorder: "#4f46e5",
+            nodeTextColor: "#ffffff",
           } : {
             darkMode: false,
             fontFamily: "Inter, sans-serif",

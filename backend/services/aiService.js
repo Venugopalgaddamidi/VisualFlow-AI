@@ -10,6 +10,13 @@ const isMermaidSyntaxValid = (code) => {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
+  // For mindmap, just check basic structure
+  if (code.includes('mindmap')) {
+    // Should have a root line
+    return lines.some(l => /^\+\s+\S/.test(l));
+  }
+
+  // Flowchart validation (original logic)
   for (const line of lines) {
 
     if (!line.includes('-->') && !/\s>\|/.test(line) && !/\s>\s/.test(line)) continue;
@@ -21,6 +28,61 @@ const isMermaidSyntaxValid = (code) => {
   }
 
   return true;
+};
+
+// Normalize mindmap to ensure valid structure
+const normalizeMindmap = (code) => {
+  const lines = code.split('\n').map(l => l.trim()).filter(l => l && l !== 'mindmap');
+  
+  if (lines.length === 0) {
+    return 'mindmap\n  + Topic\n    ++ Item';
+  }
+
+  // Parse node levels
+  const nodes = lines.map(line => {
+    const match = line.match(/^(\++)\s+(.*)/);
+    if (!match) return null;
+    return {
+      level: match[1].length,
+      text: match[2],
+      originalLine: line
+    };
+  }).filter(n => n !== null);
+
+  if (nodes.length === 0) {
+    return 'mindmap\n  + Topic\n    ++ Item';
+  }
+
+  // Find or create root (level 1)
+  let root = nodes.find(n => n.level === 1);
+  if (!root) {
+    // If no root, use first node as root
+    root = { level: 1, text: nodes[0].text };
+    nodes.shift();
+  }
+
+  // Build output with proper indentation
+  // Root: 2 spaces before +
+  // Level 2: 4 spaces before ++
+  // Level 3: 6 spaces before +++
+  // Pattern: 2 + (level - 1) * 2 spaces
+  const output = ['mindmap', `  + ${root.text}`];
+
+  // Add all other nodes, adjusting their levels
+  for (const node of nodes) {
+    if (node === root) continue;
+    
+    // Ensure minimum level 2 for children of root
+    let adjustedLevel = Math.max(2, node.level);
+    
+    // Calculate proper indentation: 2 spaces + 2 spaces per level increase
+    let spaces = 2 + (adjustedLevel - 1) * 2;
+    let indentation = ' '.repeat(spaces) + '+'.repeat(adjustedLevel) + ' ';
+    
+    output.push(indentation + node.text);
+  }
+
+  return output.join('\n');
 };
 
 export const detectDiagramType = async (text) => {
@@ -93,7 +155,27 @@ dashboard]
 
 6. Do not generate multiple connections on one line.
 
-7. If syntax becomes invalid regenerate before finishing.`;
+7. If syntax becomes invalid regenerate before finishing.
+
+MINDMAP RULES:
+
+1. EXACTLY ONE root node at the top level (starts with single +)
+2. All children use ++ (children of root)
+3. Grandchildren use +++ (children of ++)
+4. Continue pattern: ++++ for great-grandchildren, etc.
+5. NEVER have multiple lines starting with just + alone
+6. Each node must be on its own line
+7. Node text goes directly after the +++ symbols with a space
+Correct:
+mindmap
+  + Root Topic
+    ++ Child 1
+      +++ Grandchild 1A
+      +++ Grandchild 1B
+    ++ Child 2
+      +++ Grandchild 2A
+
+8. All related items must fall under one root topic`;
 
   const userPrompt = `Create a ${diagramType} from this text:
 
@@ -151,6 +233,11 @@ Return only raw Mermaid code.`;
 
       sanitizedOutput = mergedLines.join("\n");
 
+      // Fix mindmap structure if needed - NORMALIZE instead of just validating
+      if (diagramType === 'mindmap') {
+        sanitizedOutput = normalizeMindmap(sanitizedOutput);
+      }
+
       // Fix arrow mistakes
       const fixedLines = sanitizedOutput
         .split('\n')
@@ -187,9 +274,18 @@ Return only raw Mermaid code.`;
       lastSanitized = sanitizedOutput;
 
       if (isMermaidSyntaxValid(sanitizedOutput)) {
+        // For mindmap, ensure it's normalized before returning
+        if (diagramType === 'mindmap') {
+          return normalizeMindmap(sanitizedOutput);
+        }
         return sanitizedOutput;
       }
 
+    }
+
+    // Even if validation fails, normalize mindmaps to ensure they render
+    if (diagramType === 'mindmap') {
+      return normalizeMindmap(lastSanitized);
     }
 
     return lastSanitized;

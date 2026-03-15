@@ -3,6 +3,11 @@ import { generateDiagram } from '../controllers/generateController.js';
 
 const router = express.Router();
 
-router.post('/generate', generateDiagram);
+// Wrapper to handle async errors
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+router.post('/generate', asyncHandler(generateDiagram));
 
 export default router;

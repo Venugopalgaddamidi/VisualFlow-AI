@@ -1,6 +1,6 @@
 import { generateMermaidCode, detectDiagramType } from '../services/aiService.js';
 
-export const generateDiagram = async (req, res) => {
+export const generateDiagram = async (req, res, next) => {
   try {
     const { text, diagramType } = req.body;
 
@@ -26,9 +26,7 @@ export const generateDiagram = async (req, res) => {
   } catch (error) {
     console.error('Error generating diagram:', error);
     
-    // Return friendly error directly to client
-    return res.status(500).json({ 
-      error: error.message || 'An error occurred while generating your diagram.' 
-    });
+    // Pass error to global error handler
+    next(error);
   }
 };
