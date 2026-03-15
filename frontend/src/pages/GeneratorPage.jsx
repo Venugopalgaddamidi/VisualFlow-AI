@@ -66,32 +66,32 @@ const GeneratorPage = () => {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-4rem)]">
-      <div className="flex flex-col md:flex-row gap-6 h-full">
+    <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-6 min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-6 h-full">
         {/* Input Panel */}
-        <div className="w-full md:w-1/3 flex flex-col gap-5 h-[50vh] md:h-full">
-          <div className="glass-panel p-6 flex-grow flex flex-col transition-all">
-            <div className="flex items-center gap-2 mb-6">
+        <div className="w-full lg:w-1/3 flex flex-col gap-3 sm:gap-5 min-h-[45vh] sm:min-h-[50vh] lg:min-h-full">
+          <div className="glass-panel p-4 sm:p-6 flex-grow flex flex-col transition-all">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
               <div className="bg-primary-500/20 p-2 rounded-lg">
-                <Sparkles className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
               </div>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">Generate Diagram</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white tracking-tight">Generate Diagram</h2>
             </div>
             
             {error && (
-              <div className="mb-5 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-700 dark:text-red-400 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-700 dark:text-red-400 text-xs sm:text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 mt-0.5" />
                 <p>{error}</p>
               </div>
             )}
 
-            <div className="mb-5 flex-grow flex flex-col group">
-              <label htmlFor="inputText" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-primary-600 dark:group-focus-within:text-primary-400">
+            <div className="mb-4 sm:mb-5 flex-grow flex flex-col group">
+              <label htmlFor="inputText" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-primary-600 dark:group-focus-within:text-primary-400">
                 Describe your process or idea
               </label>
               <textarea
                 id="inputText"
-                className="w-full flex-grow p-4 glass-input resize-none text-base"
+                className="w-full flex-grow p-3 sm:p-4 glass-input resize-none text-sm sm:text-base"
                 placeholder={"Enter a topic or process to generate a diagram...\n\nE.g., A user logs in. If successful, they go to the dashboard. If not, they see an error message and try again."}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -99,29 +99,29 @@ const GeneratorPage = () => {
             </div>
 
             {/* Diagram Type Mode Toggle */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Diagram Type</label>
+            <div className="mb-4 sm:mb-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <label className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">Diagram Type</label>
                 <button
                   onClick={() => setIsAutoMode(!isAutoMode)}
-                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 text-xs font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-all duration-200 ${
                     isAutoMode
                       ? 'bg-primary-500/10 border-primary-400/30 text-primary-600 dark:text-primary-400'
                       : 'bg-slate-500/10 border-slate-400/30 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {isAutoMode ? (
-                    <><Wand2 className="w-3.5 h-3.5" /> Auto</>
+                    <><Wand2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Auto</>
                   ) : (
-                    <><Settings2 className="w-3.5 h-3.5" /> Manual</>
+                    <><Settings2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Manual</>
                   )}
                 </button>
               </div>
 
               {isAutoMode ? (
-                <div className="flex items-center gap-3 p-3.5 glass-input rounded-xl">
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-3.5 glass-input rounded-xl">
                   <Wand2 className="h-4 w-4 text-primary-500 shrink-0" />
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                     AI will automatically choose the best diagram type
                   </p>
                 </div>
@@ -129,7 +129,7 @@ const GeneratorPage = () => {
                 <div className="relative">
                   <select
                     id="diagramType"
-                    className="w-full p-3.5 glass-input appearance-none font-medium text-sm [&>option]:bg-white dark:[&>option]:bg-slate-800 [&>option]:text-slate-800 dark:[&>option]:text-slate-100"
+                    className="w-full p-3 sm:p-3.5 glass-input appearance-none font-medium text-xs sm:text-sm [&>option]:bg-white dark:[&>option]:bg-slate-800 [&>option]:text-slate-800 dark:[&>option]:text-slate-100"
                     value={manualType}
                     onChange={(e) => setManualType(e.target.value)}
                   >
@@ -139,7 +139,7 @@ const GeneratorPage = () => {
                     <option value="state">State Diagram</option>
                     <option value="entity-relationship">Entity Relationship (ER)</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-slate-400">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 dark:text-slate-400">
                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                   </div>
                 </div>
@@ -147,9 +147,9 @@ const GeneratorPage = () => {
 
               {/* Detected type badge */}
               {detectedType && isAutoMode && !isGenerating && (
-                <div className="mt-2.5 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                <div className="mt-2 sm:mt-2.5 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
                   <span className="text-xs text-slate-500 dark:text-slate-400">AI selected:</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-500/10 border border-primary-400/30 text-primary-600 dark:text-primary-400">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full bg-primary-500/10 border border-primary-400/30 text-primary-600 dark:text-primary-400">
                     {DIAGRAM_ICONS[detectedType]} {DIAGRAM_LABELS[detectedType] || detectedType}
                   </span>
                 </div>
@@ -159,7 +159,7 @@ const GeneratorPage = () => {
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className={`w-full flex items-center justify-center px-6 py-4 font-semibold ${
+              className={`w-full flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4 font-semibold text-sm sm:text-base ${
                 isGenerating 
                   ? 'bg-primary-500/50 cursor-not-allowed text-white/50 border border-transparent rounded-xl' 
                   : 'glass-button'
@@ -167,12 +167,12 @@ const GeneratorPage = () => {
             >
               {isGenerating ? (
                  <>
-                  <RefreshCw className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                  <RefreshCw className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                   {isAutoMode ? 'Analyzing & Generating...' : 'Generating Magic...'}
                  </>
               ) : (
                 <>
-                  <Sparkles className="-ml-1 mr-2 h-5 w-5" />
+                  <Sparkles className="-ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   Generate Diagram
                 </>
               )}
@@ -181,7 +181,7 @@ const GeneratorPage = () => {
         </div>
 
         {/* Output Panel */}
-        <div className="w-full md:w-2/3 h-[50vh] md:h-full pb-6 flex flex-col gap-6 overflow-y-auto pr-2">
+        <div className="w-full lg:w-2/3 min-h-[45vh] sm:min-h-[50vh] lg:min-h-full pb-3 sm:pb-6 flex flex-col gap-3 sm:gap-6 overflow-y-auto pr-0 sm:pr-2">
           <div className="glass-panel overflow-hidden min-h-full shrink-0 flex flex-col">
             <MermaidRenderer chartCode={chartCode} isGenerating={isGenerating} onRegenerate={handleGenerate} />
           </div>
