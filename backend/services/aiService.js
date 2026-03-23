@@ -10,11 +10,14 @@ const isMermaidSyntaxValid = (code) => {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
-  // For mindmap, just check basic structure
-  if (code.includes('mindmap')) {
-    // Should have a root line
-    return lines.some(l => /^\+\s+\S/.test(l));
-  }
+  // Mindmap — always pass to normalizer instead of blocking here
+  if (code.startsWith('mindmap')) return true;
+
+  // State diagram — always pass to normalizer
+  if (code.startsWith('stateDiagram')) return true;
+
+  // Sequence diagram — lenient check
+  if (code.startsWith('sequenceDiagram')) return true;
 
   // Flowchart validation (original logic)
   for (const line of lines) {
@@ -85,6 +88,67 @@ const normalizeMindmap = (code) => {
   return output.join('\n');
 };
 
+// Normalize stateDiagram-v2 output — remove invalid flowchart syntax
+const normalizeStateDiagram = (code) => {
+  const header = 'stateDiagram-v2';
+
+  // Strip markdown fences if still present
+  code = code
+    .replace(/```(?:mermaid)?/gi, '')
+    .replace(/```/g, '')
+    .trim();
+
+  const rawLines = code.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  const choiceCounter = { n: 0 };
+  const output = [];
+  let hasHeader = false;
+
+  for (const line of rawLines) {
+    // Keep the header
+    if (/^stateDiagram(-v2)?$/i.test(line)) {
+      if (!hasHeader) { output.push(header); hasHeader = true; }
+      continue;
+    }
+
+    // Keep valid state diagram lines
+    if (
+      /^\[\*\]\s*-->/.test(line) ||          // [*] --> X
+      /^-->\s*\[\*\]/.test(line) ||          // --> [*]  (rare but safe)
+      /^\w+\s*-->\s*\[\*\]/.test(line) ||   // X --> [*]
+      /^\w+\s*-->\s*\w+/.test(line) ||      // X --> Y
+      /^state\s+/.test(line) ||             // state "..." as X
+      /^note\s+(right|left)\s+of/.test(line) // note right of X
+    ) {
+      output.push(line);
+      continue;
+    }
+
+    // Convert flowchart D{Label} decision nodes to <<choice>> states
+    const decisionMatch = line.match(/^(\w+)\{([^}]+)\}/);
+    if (decisionMatch) {
+      const [, id, label] = decisionMatch;
+      output.push(`state "${label}" as ${id} <<choice>>`);
+      continue;
+    }
+
+    // Drop invalid keywords (flowchart-only)
+    if (/^(flowchart|graph|subgraph|end|classDef|class|style|linkStyle)\b/.test(line)) continue;
+
+    // Drop lines with square-bracket node definitions used in flowcharts: A[Label]
+    if (/^\w+\[[^\]]+\](\s*-->)?/.test(line) && !/-->/.test(line)) continue;
+
+    // Keep anything that looks like a valid comment
+    if (line.startsWith('%%')) { output.push(line); continue; }
+
+    // Otherwise drop the line (likely invalid flowchart syntax)
+  }
+
+  if (!hasHeader) output.unshift(header);
+
+  return output.join('\n');
+};
+
 export const detectDiagramType = async (text) => {
   const systemPrompt = `You are a diagram type classifier. Given a user's description, return the single most appropriate diagram type from this list:
 - flowchart
@@ -92,6 +156,13 @@ export const detectDiagramType = async (text) => {
 - sequence
 - state
 - entity-relationship
+
+Usage guidance:
+- flowchart: step-by-step processes, decision trees, algorithms
+- mindmap: topics with subtopics, history, definitions, encyclopedic/educational content, lists of categories
+- sequence: interactions between people/systems over time (e.g. login flow, API calls)
+- state: lifecycle of an object with states and transitions (e.g. ATM, traffic light, order status)
+- entity-relationship: database schemas, relationships between data entities
 
 Reply with ONLY one of these exact words:
 flowchart
@@ -175,7 +246,32 @@ mindmap
     ++ Child 2
       +++ Grandchild 2A
 
-8. All related items must fall under one root topic`;
+8. All related items must fall under one root topic
+
+STATE DIAGRAM RULES (stateDiagram-v2):
+
+1. Start with exactly: stateDiagram-v2
+2. Use [*] for the initial and final states.
+3. Simple transition:       StateA --> StateB
+4. Labeled transition:      StateA --> StateB : label text
+5. Choice (if/else) nodes use <<choice>> like this:
+   state "PIN Correct?" as PINCheck <<choice>>
+   [*] --> PINCheck
+   PINCheck --> StateA : yes
+   PINCheck --> StateB : no
+6. NEVER use {curly braces} for any nodes.
+7. NEVER use D{...} or any flowchart-style syntax.
+8. NEVER use subgraph, classDef, style, or any flowchart keyword.
+9. State names must be simple identifiers (no spaces). Use alias if needed:
+   state "Insert Card" as InsertCard
+10. Every line must be one of:
+    - stateDiagram-v2
+    - [*] --> StateName
+    - StateName --> StateName
+    - StateName --> StateName : label
+    - state "Label" as Name
+    - state "Label" as Name <<choice>>
+    - note right of StateName : text`;
 
   const userPrompt = `Create a ${diagramType} from this text:
 
@@ -238,6 +334,11 @@ Return only raw Mermaid code.`;
         sanitizedOutput = normalizeMindmap(sanitizedOutput);
       }
 
+      // Fix state diagram - strip invalid flowchart syntax
+      if (diagramType === 'state') {
+        sanitizedOutput = normalizeStateDiagram(sanitizedOutput);
+      }
+
       // Fix arrow mistakes
       const fixedLines = sanitizedOutput
         .split('\n')
@@ -283,12 +384,47 @@ Return only raw Mermaid code.`;
 
     }
 
-    // Even if validation fails, normalize mindmaps to ensure they render
+    // Even if validation fails, normalize to ensure they render
     if (diagramType === 'mindmap') {
       return normalizeMindmap(lastSanitized);
     }
+    if (diagramType === 'state') {
+      return normalizeStateDiagram(lastSanitized);
+    }
 
-    return lastSanitized;
+    // --- Fallback: simplify input and retry once ---
+    // If all attempts produced invalid syntax, ask the AI to first
+    // condense/restructure the input into a clean outline, then regenerate.
+    try {
+      const simplifyPrompt = `The following text is complex. Extract and rewrite it as a concise, structured bullet-point outline (maximum 30 words per point, no paragraphs). Keep all key concepts. Original text:
+
+"${text}"`;
+
+      const simplifySystem = `You are a text summarizer. Your ONLY job is to return a clean, structured bullet-point outline. No preamble. No markdown formatting. Just plain lines starting with a dash (-).`;
+
+      const simplifiedText = await generateWithFallback(simplifyPrompt, simplifySystem);
+
+      const fallbackPrompt = `Create a ${diagramType} diagram from this structured outline:
+
+${simplifiedText}
+
+Return only raw Mermaid code.`;
+
+      const fallbackRaw = await generateWithFallback(fallbackPrompt, systemPrompt);
+      let fallbackCode = fallbackRaw.trim();
+
+      // Strip markdown fences
+      const fm = fallbackCode.match(/```(?:mermaid)?\s*([\s\S]*?)```/);
+      if (fm && fm[1]) fallbackCode = fm[1].trim();
+      else fallbackCode = fallbackCode.replace(/^```(?:mermaid)?/i, '').replace(/```$/, '').trim();
+
+      if (diagramType === 'mindmap') return normalizeMindmap(fallbackCode);
+      if (diagramType === 'state') return normalizeStateDiagram(fallbackCode);
+      return fallbackCode;
+    } catch {
+      // If even the fallback fails, return whatever we last had
+      return lastSanitized;
+    }
 
   } catch (error) {
     throw error;

@@ -46,71 +46,117 @@ const MermaidRenderer = ({ chartCode, isGenerating, onRegenerate }) => {
           startOnLoad: false,
           theme: "base",
           themeVariables: isDark ? {
+            // ── Dark mode – vibrant colour palette ──
             darkMode: true,
             fontFamily: "Inter, sans-serif",
-        
+
             // Canvas
-            background: "#020617",
-        
-            // Node styling
+            background: "#0f172a",
+
+            // Primary nodes – vivid indigo
             primaryColor: "#6366f1",
             nodeBkg: "#6366f1",
-            primaryBorderColor: "#c7d2fe",
-            nodeBorder: "#c7d2fe",
-        
-            // Text
+            primaryBorderColor: "#818cf8",
+            nodeBorder: "#818cf8",
             primaryTextColor: "#ffffff",
-            textColor: "#f1f5f9",
-            titleColor: "#e0e7ff",
-        
-            // Connections
-            lineColor: "#e0e7ff",
-            edgeLabelBackground: "#020617",
-        
+
+            // Secondary nodes – vivid rose/pink
+            secondaryColor: "#ec4899",
+            secondaryBorderColor: "#f472b6",
+            secondaryTextColor: "#ffffff",
+
+            // Tertiary nodes – vivid teal
+            tertiaryColor: "#14b8a6",
+            tertiaryBorderColor: "#2dd4bf",
+            tertiaryTextColor: "#ffffff",
+
+            // Text & edges
+            textColor: "#e2e8f0",
+            titleColor: "#a5b4fc",
+            lineColor: "#818cf8",
+            edgeLabelBackground: "#1e293b",
+
             // Clusters
             clusterBkg: "#1e293b",
-            clusterBorder: "#94a3b8",
-        
-            // Secondary nodes
-            secondaryColor: "#4f46e5",
-            tertiaryColor: "#818cf8",
-        
-            secondaryTextColor: "#f1f5f9",
-            secondaryBorderColor: "#c7d2fe",
+            clusterBorder: "#6366f1",
 
-            // Mindmap specific
-            noteBkgColor: "#26344b",
-            noteBorderColor: "#94a3b8",
-            noteTextColor: "#f1f5f9",
-            cScale0: "#6366f1",
-            cScale1: "#818cf8",
-            cScale2: "#a5b4fc",
-            cScale3: "#bfdbfe",
+            // Notes
+            noteBkgColor: "#1e293b",
+            noteBorderColor: "#f59e0b",
+            noteTextColor: "#fde68a",
+
+            // Mindmap branch colours (cScale0–8) — vivid, distinct hues
+            cScale0: "#6366f1",   // indigo
+            cScale1: "#ec4899",   // pink
+            cScale2: "#14b8a6",   // teal
+            cScale3: "#f59e0b",   // amber
+            cScale4: "#8b5cf6",   // violet
+            cScale5: "#10b981",   // emerald
+            cScale6: "#f43f5e",   // rose
+            cScale7: "#3b82f6",   // blue
+            cScale8: "#a855f7",   // purple
+
+            // Mindmap bg aliases
             primaryBkgColor: "#6366f1",
-            primaryTextColor: "#ffffff",
-            secondaryBkgColor: "#818cf8",
-            secondaryTextColor: "#ffffff",
-            tertiaryBkgColor: "#a5b4fc",
-            tertiaryTextColor: "#1e293b",
-            nodeBkg: "#6366f1",
-            nodeBorder: "#4f46e5",
+            secondaryBkgColor: "#ec4899",
+            tertiaryBkgColor: "#14b8a6",
             nodeTextColor: "#ffffff",
           } : {
+            // ── Light mode – vibrant colour palette ──
             darkMode: false,
             fontFamily: "Inter, sans-serif",
-        
-            background: "#ffffff",
-            primaryColor: "#ffffff",
-            primaryBorderColor: "#cbd5e1",
-            primaryTextColor: "#0f172a",
-            lineColor: "#64748b",
+
+            // Canvas & base
+            background: "#f8fafc",
+
+            // Primary nodes – indigo
+            primaryColor: "#6366f1",
+            primaryBorderColor: "#4338ca",
+            primaryTextColor: "#ffffff",
+            nodeBkg: "#6366f1",
+            nodeBorder: "#4338ca",
+
+            // Secondary nodes – rose
+            secondaryColor: "#f43f5e",
+            secondaryBorderColor: "#be123c",
+            secondaryTextColor: "#ffffff",
+
+            // Tertiary nodes – amber
+            tertiaryColor: "#f59e0b",
+            tertiaryBorderColor: "#b45309",
+            tertiaryTextColor: "#1a1a1a",
+
+            // Edges & text
+            lineColor: "#6366f1",
             textColor: "#0f172a",
-            nodeBkg: "#ffffff",
-            nodeBorder: "#cbd5e1",
-            clusterBkg: "#f1f5f9",
-            clusterBorder: "#e2e8f0",
-            titleColor: "#0f172a",
-            edgeLabelBackground: "#ffffff",
+            titleColor: "#4338ca",
+            edgeLabelBackground: "#ede9fe",
+
+            // Clusters / subgraphs
+            clusterBkg: "#ede9fe",
+            clusterBorder: "#a5b4fc",
+
+            // Notes
+            noteBkgColor: "#fef9c3",
+            noteBorderColor: "#fbbf24",
+            noteTextColor: "#713f12",
+
+            // Mindmap branch colours (cScale0–8)
+            cScale0: "#6366f1",   // indigo
+            cScale1: "#ec4899",   // pink
+            cScale2: "#14b8a6",   // teal
+            cScale3: "#f59e0b",   // amber
+            cScale4: "#8b5cf6",   // violet
+            cScale5: "#10b981",   // emerald
+            cScale6: "#f43f5e",   // rose
+            cScale7: "#3b82f6",   // blue
+            cScale8: "#a855f7",   // purple
+
+            // Mindmap bg aliases
+            primaryBkgColor: "#6366f1",
+            secondaryBkgColor: "#ec4899",
+            tertiaryBkgColor: "#14b8a6",
+            nodeTextColor: "#ffffff",
           },
         
           securityLevel: "loose"
@@ -137,52 +183,24 @@ const MermaidRenderer = ({ chartCode, isGenerating, onRegenerate }) => {
     };
   }, [chartCode, isDark]);
 
-  const exportPNG = () => {
+  // JPG export – 3× pixel ratio for crisp output
+  const exportJPG = () => {
     if (containerRef.current) {
       const svgElement = containerRef.current.querySelector('svg');
       if (svgElement) {
-        // Ensure background matches current theme so dark mode text is legible
         const bgColor = isDark ? '#0f172a' : '#ffffff';
-        htmlToImage.toPng(svgElement, { backgroundColor: bgColor })
+        htmlToImage.toJpeg(svgElement, {
+          backgroundColor: bgColor,
+          pixelRatio: 3,
+          quality: 0.95,
+        })
           .then((dataUrl) => {
-            download(dataUrl, 'diagram.png');
+            download(dataUrl, 'diagram.jpg');
           })
           .catch((err) => {
-            console.error('Failed to export PNG', err);
+            console.error('Failed to export JPG', err);
           });
       }
-    }
-  };
-
-  const exportSVG = () => {
-    if (svgContent) {
-      // Inject background-color into the SVG string so it remains visible in standalone image viewers
-      const bgColor = isDark ? '#0f172a' : '#ffffff';
-      const styledSvg = svgContent.replace('<svg ', `<svg style="background-color: ${bgColor};" `);
-      
-      const blob = new Blob([styledSvg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'diagram.svg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  };
-
-  const exportMermaid = () => {
-    if (chartCode) {
-      const blob = new Blob([chartCode], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'diagram.mmd';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
   };
 
@@ -261,12 +279,12 @@ const MermaidRenderer = ({ chartCode, isGenerating, onRegenerate }) => {
               
               <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-sm border border-white/40 dark:border-slate-700/50 rounded-xl p-1 sm:p-1.5 flex gap-0.5 sm:gap-1">
                 <button
-                  onClick={exportPNG}
+                  onClick={exportJPG}
                   className="p-2 sm:p-2.5 px-2 sm:px-4 hover:bg-slate-500/10 rounded-lg text-slate-700 dark:text-slate-300 flex items-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm transition-colors"
-                  title="Export as PNG"
+                  title="Export as JPG"
                 >
                   <Download size={14} className="sm:size-[18px]" />
-                  <span className="hidden lg:inline-block">Export PNG</span>
+                  <span className="hidden lg:inline-block">Export JPG</span>
                 </button>
               </div>
             </div>
