@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Wand2, Share2, ZoomIn, Braces, ArrowRight } from 'lucide-react';
+import { Wand2, Share2, ZoomIn, Braces, ArrowRight, Sparkles, FileText, ScanSearch, Download, ToggleLeft } from 'lucide-react';
 
 const LandingPage = () => {
   return (
@@ -54,26 +54,36 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             <FeatureCard 
-              icon={<Wand2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
-              title="AI‑generated diagrams"
-              description="Paste any idea or process, and the AI turns it into a clean, ready‑to‑use diagram in seconds."
+              icon={<Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
+              title="AI‑Powered Generation"
+              description="Paste any idea, process, or description and watch the AI instantly transform it into a clean, professional diagram in seconds."
             />
             <FeatureCard 
               icon={<Braces className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
-              title="Multiple diagram types"
-              description="Auto‑detects or manually selects flowcharts, mind maps, sequence, state, and ER diagrams with strict Mermaid syntax."
+              title="5 Diagram Types"
+              description="Generate Flowcharts, Mind Maps, Sequence Diagrams, State Diagrams, and Entity-Relationship (ER) diagrams — all with strict Mermaid syntax."
+            />
+            <FeatureCard 
+              icon={<ToggleLeft className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
+              title="Auto‑Detect or Manual"
+              description="Let the AI automatically choose the best diagram type for your content, or switch to manual mode and pick the type yourself."
             />
             <FeatureCard 
               icon={<ZoomIn className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
-              title="Interactive canvas"
-              description="Zoom, pan, and reposition your diagram on a smooth dark or light canvas that is optimized for reading."
+              title="Interactive Canvas"
+              description="Zoom, pan, and reposition your diagram on a smooth canvas. Works seamlessly in both dark and light mode for comfortable reading."
             />
             <FeatureCard 
-              icon={<Share2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
-              title="One‑click PNG export"
-              description="Capture exactly what you see in the viewer as a high‑resolution PNG image for slides, docs, or sharing."
+              icon={<FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
+              title="AI Diagram Summary"
+              description="Every generated diagram comes with an AI-written plain-English summary explaining exactly what the diagram represents."
+            />
+            <FeatureCard 
+              icon={<Download className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600 dark:text-primary-400" />}
+              title="One‑Click JPG Export"
+              description="Export your diagram as a crisp, high-resolution JPG image — perfect for slides, documentation, reports, or sharing with your team."
             />
           </div>
         </div>
