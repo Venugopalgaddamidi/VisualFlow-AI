@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import MermaidRenderer from '../components/MermaidRenderer';
-import { Sparkles, RefreshCw, AlertCircle, Wand2, Settings2 } from 'lucide-react';
+import { Sparkles, RefreshCw, AlertCircle, Wand2, Settings2, FileText, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -28,6 +28,8 @@ const GeneratorPage = () => {
   const [detectedType, setDetectedType] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [summary, setSummary] = useState('');
+  const [showSummary, setShowSummary] = useState(false);
 
   const handleGenerate = async () => {
     if (!inputText.trim()) {
@@ -38,6 +40,8 @@ const GeneratorPage = () => {
     setIsGenerating(true);
     setError('');
     setDetectedType('');
+    setSummary('');
+    setShowSummary(false);
 
     try {
       const response = await fetch(`${API_URL}/api/generate`, {
@@ -57,6 +61,7 @@ const GeneratorPage = () => {
       const data = await response.json();
       setChartCode(data.mermaidCode);
       if (data.detectedType) setDetectedType(data.detectedType);
+      if (data.summary) setSummary(data.summary);
     } catch (err) {
       console.error(err);
       setError(err.message || 'An unexpected error occurred. Please try again.');
@@ -66,11 +71,11 @@ const GeneratorPage = () => {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-6 min-h-[calc(100vh-4rem)]">
-      <div className="flex flex-col lg:flex-row gap-3 sm:gap-6 h-full">
+    <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 h-[calc(100vh-4rem)] flex flex-col">
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-6 flex-1 min-h-0">
         {/* Input Panel */}
-        <div className="w-full lg:w-1/3 flex flex-col gap-3 sm:gap-5 min-h-[45vh] sm:min-h-[50vh] lg:min-h-full">
-          <div className="glass-panel p-4 sm:p-6 flex-grow flex flex-col transition-all">
+        <div className="w-full lg:w-1/3 flex flex-col gap-3 sm:gap-5 h-full overflow-hidden">
+          <div className="glass-panel p-4 sm:p-6 h-full flex flex-col transition-all overflow-hidden">
             <div className="flex items-center gap-2 mb-4 sm:mb-6">
               <div className="bg-primary-500/20 p-2 rounded-lg">
                 <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
@@ -181,11 +186,56 @@ const GeneratorPage = () => {
         </div>
 
         {/* Output Panel */}
-        <div className="w-full lg:w-2/3 min-h-[45vh] sm:min-h-[50vh] lg:min-h-full pb-3 sm:pb-6 flex flex-col gap-3 sm:gap-6 overflow-y-auto pr-0 sm:pr-2">
-          <div className="glass-panel overflow-hidden min-h-full shrink-0 flex flex-col">
+        <div className="w-full lg:w-2/3 h-full flex flex-col">
+          <div className="glass-panel overflow-hidden h-full flex flex-col relative">
             <MermaidRenderer chartCode={chartCode} isGenerating={isGenerating} onRegenerate={handleGenerate} />
+
+            {/* Summary button – shown after diagram is generated */}
+            {summary && !isGenerating && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                <button
+                  onClick={() => setShowSummary(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-500/40 transition-all hover:scale-105 active:scale-95"
+                >
+                  <FileText size={14} />
+                  View Summary
+                </button>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Summary Modal */}
+        {showSummary && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowSummary(false)}
+          >
+            <div
+              className="glass-panel w-full max-w-lg p-6 sm:p-8 relative animate-in zoom-in-95 duration-200"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowSummary(false)}
+                className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-slate-500/10 text-slate-500 dark:text-slate-400 transition-colors"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-primary-500/20 p-2 rounded-lg">
+                  <FileText className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-white tracking-tight">Diagram Summary</h3>
+              </div>
+
+              {/* Summary text */}
+              <p className="text-sm sm:text-base text-slate-900 dark:text-slate-200 leading-relaxed font-medium">{summary}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

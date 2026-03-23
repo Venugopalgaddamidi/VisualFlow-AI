@@ -182,6 +182,24 @@ entity-relationship`;
   }
 };
 
+export const generateSummary = async (text, diagramType) => {
+  const systemPrompt = `You are a concise technical writer. Given a user's description and the type of diagram generated from it, write a clear 2-4 sentence plain-English summary explaining:
+1. What the diagram represents
+2. The key steps, components, or relationships shown
+3. Any important decision points or outcomes
+
+Keep it friendly, informative, and free of any jargon. Do NOT mention Mermaid or code. Reply with ONLY the summary text, no bullet points, no headings.`;
+
+  const userPrompt = `Diagram type: ${diagramType}\nUser description: "${text}"\n\nWrite a brief summary of what this diagram shows.`;
+
+  try {
+    const result = await generateWithFallback(userPrompt, systemPrompt);
+    return result.trim();
+  } catch {
+    return '';
+  }
+};
+
 export const generateMermaidCode = async (text, diagramType) => {
 
   const systemPrompt = `You are an expert software architect and diagram creator that converts natural language into Mermaid.js diagrams.
